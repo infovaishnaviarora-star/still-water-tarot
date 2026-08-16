@@ -1898,14 +1898,14 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
 
   /* ============================================================
      CONTACT FORM
-     Submissions are POSTED to FormSubmit, which forwards them to the
-     inbox named in the endpoint. FormSubmit needs no account: the first
-     message sent to a new address triggers a one-off confirmation email,
-     and delivery begins once that link is clicked.
+     Submissions are POSTED to a Formspree form, which forwards them to
+     whichever inbox that form is configured for. The destination lives in
+     the Formspree account, never in this page, so there is no address here
+     for scrapers to harvest.
 
-     Once activated, FormSubmit issues a random alias for the same inbox
-     (https://formsubmit.co/ajax/<alias>). Swapping it in here keeps the
-     address out of the page source, away from scrapers.
+     ENDPOINT below is the form id. To point this site at its own form
+     rather than sharing one, create a new form in the Formspree dashboard
+     and swap the id -- nothing else changes.
 
      The confirmation panel only appears when the service confirms it took
      the message -- a failed send says so and keeps the form filled in.
@@ -1917,7 +1917,7 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
     const form = document.getElementById('contactForm');
     if (!form) return;
 
-    const ENDPOINT = 'https://formsubmit.co/ajax/manna.manna2015@gmail.com';
+    const ENDPOINT = 'https://formspree.io/f/mlgowebe';
 
     const btn    = document.getElementById('contactSend');
     const note   = document.getElementById('formNote');
@@ -1962,21 +1962,22 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
       let delivered = false, reason = '';
       if (ENDPOINT) {
         try {
+          const fd = new FormData();
+          fd.append('name', d.name);
+          fd.append('email', d.email);          // Formspree uses this as reply-to
+          fd.append('message', d.message);
+          fd.append('_subject', 'Reading enquiry from ' + d.name);
           const res = await fetch(ENDPOINT, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-            body: JSON.stringify({
-              name: d.name,
-              email: d.email,
-              message: d.message,
-              _subject: 'Reading enquiry from ' + d.name,
-              _template: 'table',
-              _captcha: 'false'
-            })
+            body: fd,
+            headers: { 'Accept': 'application/json' }
           });
           const data = await res.json().catch(() => ({}));
-          delivered = res.ok && String(data.success !== undefined ? data.success : true) === 'true';
-          if (!delivered) reason = data.message || ('HTTP ' + res.status);
+          delivered = res.ok && data.ok !== false;
+          if (!delivered) {
+            reason = (data.errors && data.errors.map(function (e) { return e.message; }).join('; '))
+                     || ('HTTP ' + res.status);
+          }
         } catch (err) {
           reason = 'network: ' + (err && err.message ? err.message : 'request failed');
         }
@@ -2211,7 +2212,6 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
     raf = requestAnimationFrame(frame);
   })();
 </script>
-
 <!-- TEMPORARY: ?selftest=1 drives the real form once, from this real origin,
      and reports the outcome in document.title. Removed once delivery is proven. -->
 <script>
