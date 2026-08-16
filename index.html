@@ -1917,7 +1917,7 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
     const form = document.getElementById('contactForm');
     if (!form) return;
 
-    const ENDPOINT = 'https://formspree.io/f/mlgowebe';
+    const ENDPOINT = 'https://formspree.io/f/mwlendbe';
 
     const btn    = document.getElementById('contactSend');
     const note   = document.getElementById('formNote');
@@ -2211,6 +2211,29 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
     layout();
     raf = requestAnimationFrame(frame);
   })();
+</script>
+
+<!-- TEMPORARY: ?selftest=1 drives the real form once from this origin. -->
+<script>
+(function(){
+  if (!/[?&]selftest=1/.test(location.search)) return;
+  var reason=''; var warn=console.warn;
+  console.warn=function(){ reason+=Array.prototype.join.call(arguments,' '); warn.apply(console,arguments); };
+  addEventListener('load',function(){
+    setTimeout(function(){
+      var f=document.getElementById('contactForm');
+      f.querySelector('[name=name]').value='Still Water delivery check';
+      f.querySelector('[name=email]').value='vaishnaviarora1998@gmail.com';
+      f.querySelector('[name=message]').value='Verifying that tarot enquiries now reach the Manna inbox.';
+      f.dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}));
+      setTimeout(function(){
+        var ok=getComputedStyle(document.getElementById('formThanks')).display!=='none';
+        document.title='SELFTEST '+(ok?'DELIVERED':'FAILED')+' :: '+
+          (reason||document.getElementById('formNote').textContent);
+      },6000);
+    },1500);
+  });
+})();
 </script>
 </body>
 </html>
