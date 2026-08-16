@@ -1959,7 +1959,7 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
       btn.disabled = true;
       btn.textContent = 'Sending\u2026';
 
-      let delivered = false;
+      let delivered = false, reason = '';
       if (ENDPOINT) {
         try {
           const res = await fetch(ENDPOINT, {
@@ -1976,8 +1976,9 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
           });
           const data = await res.json().catch(() => ({}));
           delivered = res.ok && String(data.success !== undefined ? data.success : true) === 'true';
-        } catch (_) {
-          delivered = false;          // offline, blocked, or the service is down
+          if (!delivered) reason = data.message || ('HTTP ' + res.status);
+        } catch (err) {
+          reason = 'network: ' + (err && err.message ? err.message : 'request failed');
         }
       }
 
@@ -1986,7 +1987,13 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
 
       // Only promise a reply if the message actually went somewhere.
       if (!delivered) {
-        note.textContent = "That didn't send. Please check your connection and try again.";
+        // Whoever maintains the site gets the real cause in the console --
+        // e.g. FormSubmit's one-time "this form needs activation". A visitor
+        // gets a plain line instead, since none of that is theirs to fix.
+        if (reason) console.warn('[contact form] not delivered — ' + reason);
+        note.textContent = reason.indexOf('network:') === 0
+          ? "That didn't send. Please check your connection and try again."
+          : "That didn't send. Please try again in a moment.";
         return;
       }
       confirmSent();
