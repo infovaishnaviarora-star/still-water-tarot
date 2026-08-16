@@ -2212,30 +2212,5 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
     raf = requestAnimationFrame(frame);
   })();
 </script>
-<!-- TEMPORARY: ?selftest=1 drives the real form once, from this real origin,
-     and reports the outcome in document.title. Removed once delivery is proven. -->
-<script>
-(function(){
-  if (!/[?&]selftest=1/.test(location.search)) return;
-  var reason = '';
-  var warn = console.warn;
-  console.warn = function(){ reason += Array.prototype.join.call(arguments,' '); warn.apply(console, arguments); };
-  addEventListener('load', function(){
-    setTimeout(function(){
-      var f = document.getElementById('contactForm');
-      f.querySelector('[name=name]').value = 'Self test';
-      f.querySelector('[name=email]').value = 'vaishnaviarora1998@gmail.com';
-      f.querySelector('[name=message]').value = 'Automated delivery check from the live site.';
-      f.dispatchEvent(new Event('submit', {cancelable:true, bubbles:true}));
-      setTimeout(function(){
-        var thanks = document.getElementById('formThanks');
-        var ok = getComputedStyle(thanks).display !== 'none';
-        document.title = 'SELFTEST ' + (ok ? 'DELIVERED' : 'FAILED') + ' :: ' +
-                         (reason || document.getElementById('formNote').textContent);
-      }, 6000);
-    }, 1500);
-  });
-})();
-</script>
 </body>
 </html>
