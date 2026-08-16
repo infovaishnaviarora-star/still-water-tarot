@@ -1066,28 +1066,43 @@
   /* ============================================================
      CONTACT
      ============================================================ */
+  /* The watercolour behind this section swings from deep blue to near-white as
+     the frame sequence advances, so the light type here cannot depend on it.
+     A soft scrim guarantees contrast wherever the scrub happens to be. */
+  #contact { isolation: isolate; }
+  #contact::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(88% 72% at 50% 46%,
+      rgba(17,30,47,0.80) 0%,
+      rgba(17,30,47,0.64) 55%,
+      rgba(17,30,47,0.30) 100%);
+  }
   .contact { text-align: center; max-width: 660px; margin: 0 auto; }
   /* Contact sits over a deep-blue water frame -> light text for legibility */
   .contact h2 {
     font-family: 'Cormorant Garamond', serif;
     font-size: clamp(2.2rem, 4.5vw, 3.2rem);
     font-weight: 300;
-    color: var(--pearl);
+    color: #fff;
     line-height: 1.18;
     margin-bottom: 1.25rem;
-    text-shadow: 0 1px 18px rgba(11,22,38,0.5);
+    text-shadow: 0 2px 18px rgba(11,22,38,0.8);
   }
   .contact h2 em { font-style: italic; color: var(--sea-glass); }
   .contact .eyebrow {
     color: var(--sea-glass);
-    text-shadow: 0 1px 12px rgba(11,22,38,0.45);
+    text-shadow: 0 1px 10px rgba(11,22,38,0.9);
   }
   .contact > p {
-    color: rgba(245,243,238,0.92);
+    color: #fff;
     font-size: 0.98rem;
     line-height: 1.9;
     margin-bottom: 2.5rem;
-    text-shadow: 0 1px 14px rgba(11,22,38,0.5);
+    text-shadow: 0 1px 12px rgba(11,22,38,0.85);
   }
   .contact-form {
     display: flex;
@@ -1446,6 +1461,25 @@
     .form-again { font-size: 12px; padding: 0.7rem 1.4rem; }
     .form-thanks { padding: 2rem 1.25rem 1.75rem; }
 
+    /* -- readability on a phone screen --
+       Jost 300 is too fine at arm's length, and both the How I Read quote and
+       the contact copy sit on busy watercolour. Heavier weights plus a soft
+       halo lift the type off the texture without changing the palette. */
+    body { font-weight: 400; }
+    .philosophy-text {
+      font-weight: 500;
+      text-shadow: 0 1px 18px rgba(245,243,238,0.95), 0 1px 3px rgba(245,243,238,0.9);
+    }
+    .deck-intro p,
+    .about-text p,
+    .service-desc,
+    .watch-text p,
+    .contact > p { font-weight: 400; }
+    .contact-form input,
+    .contact-form textarea { background: rgba(255,255,255,0.94); font-weight: 400; }
+    .contact-form input::placeholder,
+    .contact-form textarea::placeholder { color: rgba(56,90,122,0.75); }
+
     /* -- tap targets: everything touchable clears 44px -- */
     .nav-links a { font-size: 0.95rem; padding: 0.7rem 0; }
     .footer-links { flex-wrap: wrap; gap: 0.5rem 1.5rem; }
@@ -1752,7 +1786,7 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
     // full bitmap. Take every third frame on small screens: the wash still
     // moves with the scroll at a third of the memory and decode work.
     const SMALL = window.matchMedia('(max-width: 700px)').matches;
-    const SEQ = SMALL ? FRAMES.filter((_, i) => i % 3 === 0) : FRAMES;
+    const SEQ = SMALL ? FRAMES.filter((_, i) => i % 4 === 0) : FRAMES;
 
     const FRAME_COUNT = SEQ.length;
     const frameURL = (i) => SEQ[i - 1];
@@ -1785,7 +1819,7 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
 
     function resize() {
       // cap the backing store harder on phones -- a 3x canvas is pure cost here
-      dpr = Math.min(window.devicePixelRatio || 1, SMALL ? 1.5 : 2);
+      dpr = Math.min(window.devicePixelRatio || 1, SMALL ? 1 : 2);
       canvas.width = Math.floor(window.innerWidth * dpr);
       canvas.height = Math.floor(window.innerHeight * dpr);
       canvas.style.width = window.innerWidth + 'px';
@@ -1825,6 +1859,7 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
       return HERO_FRAME + p * (FRAME_COUNT - 1 - HERO_FRAME);
     }
 
+    let drawn = -1;             // last frame index actually painted
     let current = HERO_FRAME;   // smoothed frame index (float)
     let target = HERO_FRAME;
     let rafId = null;
@@ -1837,8 +1872,16 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
 
       let idx = Math.round(current);
       idx = Math.min(FRAME_COUNT - 1, Math.max(0, idx));
-      const img = images[idx];
-      if (img && img.complete && img.naturalWidth) drawCover(img);
+      // Redraw only when the chosen frame actually changes. The eased scrub
+      // runs many frames per step, and repainting an identical image each
+      // time was most of the scroll cost on a phone.
+      if (idx !== drawn || force) {
+        const img = images[idx];
+        if (img && img.complete && img.naturalWidth) {
+          drawCover(img);
+          drawn = idx;
+        }
+      }
 
       // keep animating until settled
       if (force || Math.abs(target - current) > 0.05) {
@@ -1854,7 +1897,7 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
 
     resize();
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', () => { resize(); render(true); });
+    window.addEventListener('resize', () => { resize(); drawn = -1; render(true); });
   })();
 
   // Nav shrink on scroll
