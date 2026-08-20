@@ -1066,43 +1066,31 @@
   /* ============================================================
      CONTACT
      ============================================================ */
-  /* The watercolour behind this section swings from deep blue to near-white as
-     the frame sequence advances, so the light type here cannot depend on it.
-     A soft scrim guarantees contrast wherever the scrub happens to be. */
-  #contact { isolation: isolate; }
-  #contact::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background: radial-gradient(88% 72% at 50% 46%,
-      rgba(17,30,47,0.80) 0%,
-      rgba(17,30,47,0.64) 55%,
-      rgba(17,30,47,0.30) 100%);
-  }
   .contact { text-align: center; max-width: 660px; margin: 0 auto; }
-  /* Contact sits over a deep-blue water frame -> light text for legibility */
+  /* The page ends on a pale wash, so this section is set in ink -- the same
+     light passage the footer below it lives in. */
   .contact h2 {
     font-family: 'Cormorant Garamond', serif;
     font-size: clamp(2.2rem, 4.5vw, 3.2rem);
     font-weight: 300;
-    color: #fff;
+    color: var(--moonlit-navy);
     line-height: 1.18;
     margin-bottom: 1.25rem;
-    text-shadow: 0 2px 18px rgba(11,22,38,0.8);
+    text-shadow: 0 1px 16px rgba(245,243,238,0.6);
   }
-  .contact h2 em { font-style: italic; color: var(--sea-glass); }
+  .contact h2 em { font-style: italic; color: var(--ocean-blue); }
   .contact .eyebrow {
-    color: var(--sea-glass);
-    text-shadow: 0 1px 10px rgba(11,22,38,0.9);
+    color: var(--moonlit-navy);
+    text-shadow: 0 1px 12px rgba(245,243,238,0.75);
   }
+  /* the closing wash is mid-blue and busy, so the body copy needs the darker
+     ink and a pale halo to stay clear of the texture */
   .contact > p {
-    color: #fff;
+    color: var(--moonlit-navy);
     font-size: 0.98rem;
     line-height: 1.9;
     margin-bottom: 2.5rem;
-    text-shadow: 0 1px 12px rgba(11,22,38,0.85);
+    text-shadow: 0 1px 14px rgba(245,243,238,0.8);
   }
   .contact-form {
     display: flex;
@@ -1155,8 +1143,8 @@
     margin: 0.2rem 0 0;
     font-size: 0.8rem;
     letter-spacing: 0.06em;
-    color: #FFE0DC;
-    text-shadow: 0 1px 10px rgba(11,22,38,0.6);
+    color: #A34A4A;
+    text-shadow: 0 1px 10px rgba(245,243,238,0.6);
   }
 
   /* Confirmation panel -- replaces the form once a message is away */
@@ -1462,9 +1450,9 @@
     .form-thanks { padding: 2rem 1.25rem 1.75rem; }
 
     /* -- readability on a phone screen --
-       Jost 300 is too fine at arm's length, and both the How I Read quote and
-       the contact copy sit on busy watercolour. Heavier weights plus a soft
-       halo lift the type off the texture without changing the palette. */
+       Jost 300 is too fine at arm's length, and the How I Read quote sits on
+       busy watercolour. Heavier weights plus a soft halo lift the type off the
+       texture without laying anything over the artwork. */
     body { font-weight: 400; }
     .philosophy-text {
       font-weight: 500;
@@ -1473,7 +1461,6 @@
     .deck-intro p,
     .about-text p,
     .service-desc,
-    .watch-text p,
     .contact > p { font-weight: 400; }
     .contact-form input,
     .contact-form textarea { background: rgba(255,255,255,0.94); font-weight: 400; }
@@ -1657,25 +1644,25 @@
           <span class="service-num">I</span>
           <h3 class="service-name">Single Card Pull</h3>
           <p class="service-desc">One card. One question. A focused, honest reflection for when you need clarity on something specific right now.</p>
-          <span class="service-price">15 min</span>
+          <span class="service-price">15 min &#183; &#8364;15</span>
         </div>
         <div class="service-item">
           <span class="service-num">II</span>
           <h3 class="service-name">Celtic Cross</h3>
           <p class="service-desc">The full picture. A ten-card spread that surfaces where you are, what's beneath the surface, and what's moving toward you.</p>
-          <span class="service-price">45 min</span>
+          <span class="service-price">45 min &#183; &#8364;45</span>
         </div>
         <div class="service-item">
           <span class="service-num">III</span>
           <h3 class="service-name">Seasonal Reading</h3>
           <p class="service-desc">A deep three-month reading tied to the natural cycle of the season &#8212; what to release, what to tend, what to welcome.</p>
-          <span class="service-price">60 min</span>
+          <span class="service-price">60 min &#183; &#8364;65</span>
         </div>
         <div class="service-item">
           <span class="service-num">IV</span>
           <h3 class="service-name">Email Reading</h3>
           <p class="service-desc">Submit your question. Receive a written, thoughtful reading within 48 hours &#8212; calm, thorough, and yours to return to.</p>
-          <span class="service-price">Written</span>
+          <span class="service-price">Written &#183; &#8364;30</span>
         </div>
       </div>
     </div>
@@ -1786,7 +1773,8 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
     // full bitmap. Take every third frame on small screens: the wash still
     // moves with the scroll at a third of the memory and decode work.
     const SMALL = window.matchMedia('(max-width: 700px)').matches;
-    const SEQ = SMALL ? FRAMES.filter((_, i) => i % 4 === 0) : FRAMES;
+    const STRIDE = SMALL ? 4 : 1;
+    const SEQ = SMALL ? FRAMES.filter((_, i) => i % STRIDE === 0) : FRAMES;
 
     const FRAME_COUNT = SEQ.length;
     const frameURL = (i) => SEQ[i - 1];
@@ -1843,6 +1831,12 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
     // the page scrubs frames 16 -> (FRAME_COUNT-1) once the hero scrolls away.
     const HERO_FRAME = 0;
 
+    // Let the wash run to its natural end -- the last frames are a soft pale
+    // blue. Pinning it to the deepest frame (to carry light type) turned the
+    // bottom of the page into a hard slab of saturated blue; the contact type
+    // is dark now instead, so the ending can stay gentle.
+    const END_FRAME = FRAME_COUNT - 1;
+
     function targetFrame() {
       const hero = document.getElementById('home');
       const heroH = hero ? hero.offsetHeight : window.innerHeight;
@@ -1856,7 +1850,7 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
       const afterEnd = document.documentElement.scrollHeight - window.innerHeight;
       const span = afterEnd - afterStart;
       const p = span > 0 ? Math.min(1, Math.max(0, (y - afterStart) / span)) : 1;
-      return HERO_FRAME + p * (FRAME_COUNT - 1 - HERO_FRAME);
+      return HERO_FRAME + p * (END_FRAME - HERO_FRAME);
     }
 
     let drawn = -1;             // last frame index actually painted
@@ -1872,9 +1866,9 @@ const FRAMES=["data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD//gAQTGF2YzYyLj
 
       let idx = Math.round(current);
       idx = Math.min(FRAME_COUNT - 1, Math.max(0, idx));
-      // Redraw only when the chosen frame actually changes. The eased scrub
-      // runs many frames per step, and repainting an identical image each
-      // time was most of the scroll cost on a phone.
+      // Repaint only when the chosen frame changes. The eased scrub runs many
+      // animation frames per step, and redrawing an identical image each time
+      // was most of the scroll cost on a phone.
       if (idx !== drawn || force) {
         const img = images[idx];
         if (img && img.complete && img.naturalWidth) {
